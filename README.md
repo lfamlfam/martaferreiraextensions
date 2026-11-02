@@ -4,7 +4,6 @@ Site estático de https://martaferreiraextensions.pt, hospedado no Cloudflare Pa
 
 - Textos e contactos: `build.mjs`
 - Estilos, fontes, imagens e configuração do Cloudflare: `public/`
-- Cópia do site antigo (cabelodeluxo.pt): `arquivo-site-antigo/`, não é publicada
 
 Gerar e ver localmente: `npm run preview`, depois abrir http://localhost:4173
 
