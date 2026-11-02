@@ -10,7 +10,6 @@ const FACEBOOK = "https://www.facebook.com/cabelodeluxoextensions";
 const PHONE = "+351 925 110 165";
 const PHONE_E164 = "+351925110165";
 const WHATSAPP = `https://wa.me/351925110165?text=${encodeURIComponent("Olá Marta, gostaria de marcar uma avaliação.")}`;
-const EMAIL = "contato@cabelodeluxo.pt";
 const ADDRESS = "Rua Gonçalves Zarco 1D, Monte Belo, Setúbal";
 const MAPS = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(ADDRESS)}`;
 const VIDEO = "https://www.youtube.com/watch?v=SBxBwAJvCgg";
@@ -40,25 +39,70 @@ const contactButtons = () => `<div class="cta">
   <a class="btn" href="${INSTAGRAM}" ${ext}>${IG_ICON}<span><b>Instagram</b><small>${INSTAGRAM_USER}</small></span></a>
 </div>`;
 
-const JSON_LD = {
+const SERVICES = ["Aplicação", "Remoção", "Manutenção", "Harmonização"];
+const HOME_DESCRIPTION = "Extensões de micro-queratina com cabelo brasileiro, em Setúbal. Atendimento individual e com hora marcada, por Marta Ferreira, com mais de 20 anos de experiência.";
+
+const BUSINESS_LD = {
   "@context": "https://schema.org",
-  "@type": "HairSalon",
-  name: "Marta Ferreira Extensions",
-  url: `${SITE}/`,
-  image: `${SITE}/img/og.jpg`,
-  telephone: PHONE_E164,
-  email: EMAIL,
-  address: { "@type": "PostalAddress", streetAddress: "Rua Gonçalves Zarco 1D", addressLocality: "Setúbal", addressCountry: "PT" },
-  openingHoursSpecification: {
-    "@type": "OpeningHoursSpecification",
-    dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
-    opens: "09:00",
-    closes: "18:00",
-  },
-  sameAs: [INSTAGRAM, FACEBOOK],
+  "@graph": [
+    {
+      "@type": "HairSalon",
+      "@id": `${SITE}/#negocio`,
+      name: "Marta Ferreira Extensions",
+      description: HOME_DESCRIPTION,
+      url: `${SITE}/`,
+      image: `${SITE}/img/og.jpg`,
+      telephone: PHONE_E164,
+      address: { "@type": "PostalAddress", streetAddress: "Rua Gonçalves Zarco 1D, Monte Belo", addressLocality: "Setúbal", addressCountry: "PT" },
+      areaServed: { "@type": "City", name: "Setúbal" },
+      openingHoursSpecification: {
+        "@type": "OpeningHoursSpecification",
+        dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+        opens: "09:00",
+        closes: "18:00",
+      },
+      founder: { "@id": `${SITE}/#marta` },
+      hasOfferCatalog: {
+        "@type": "OfferCatalog",
+        name: "Serviços de extensões de cabelo",
+        itemListElement: SERVICES.map((name) => ({ "@type": "Offer", itemOffered: { "@type": "Service", name: `${name} de extensões de micro-queratina` } })),
+      },
+      sameAs: [INSTAGRAM, FACEBOOK],
+    },
+    {
+      "@type": "Person",
+      "@id": `${SITE}/#marta`,
+      name: "Marta Ferreira",
+      jobTitle: "Especialista em extensões de cabelo",
+      worksFor: { "@id": `${SITE}/#negocio` },
+      knowsAbout: ["Extensões de cabelo", "Extensões de micro-queratina"],
+      sameAs: [INSTAGRAM],
+    },
+    {
+      "@type": "WebSite",
+      "@id": `${SITE}/#site`,
+      name: "Marta Ferreira Extensions",
+      url: `${SITE}/`,
+      inLanguage: "pt-PT",
+      publisher: { "@id": `${SITE}/#negocio` },
+    },
+  ],
 };
 
-const layout = ({ path, title, description, body }) => {
+const CRUMBS = Object.fromEntries([...NAV, ["/celebridades/", "Clientes de referência"]]);
+const breadcrumbLd = (path) => ({
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    { "@type": "ListItem", position: 1, name: "Início", item: `${SITE}/` },
+    { "@type": "ListItem", position: 2, name: CRUMBS[path], item: `${SITE}${path}` },
+  ],
+});
+const ldTag = (data) => `<script type="application/ld+json">${JSON.stringify(data)}</script>`;
+
+const layout = ({ path, title, description, body, schema = [] }) => {
+  const isError = path === "/404.html";
+  const ld = [...(path === "/" ? [BUSINESS_LD] : CRUMBS[path] ? [breadcrumbLd(path)] : []), ...schema].map(ldTag).join("\n");
   const navLinks = NAV.map(([href, label]) => `<a href="${href}"${href === path ? ' aria-current="page"' : ""}>${label}</a>`).join("");
   return `<!doctype html>
 <html lang="pt-PT">
@@ -67,7 +111,9 @@ const layout = ({ path, title, description, body }) => {
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${title}</title>
 <meta name="description" content="${description}">
-<link rel="canonical" href="${SITE}${path}">
+<meta name="robots" content="${isError ? "noindex" : "index,follow,max-image-preview:large"}">
+${isError ? "" : `<link rel="canonical" href="${SITE}${path}">`}
+<link rel="alternate" type="text/plain" href="/llms.txt" title="Resumo do site para assistentes de IA">
 <meta name="theme-color" content="#f7f4ee">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="pt_PT">
@@ -76,10 +122,13 @@ const layout = ({ path, title, description, body }) => {
 <meta property="og:description" content="${description}">
 <meta property="og:url" content="${SITE}${path}">
 <meta property="og:image" content="${SITE}/img/og.jpg">
+<meta property="og:image:width" content="768">
+<meta property="og:image:height" content="403">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="preload" href="/fonts/cormorant-garamond-latin-300-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/styles.css">
-${path === "/" ? `<script type="application/ld+json">${JSON.stringify(JSON_LD)}</script>` : ""}
+${ld}
 </head>
 <body>
 <a class="skip" href="#conteudo">Saltar para o conteúdo</a>
@@ -102,11 +151,11 @@ ${body}
     <div class="foot">
       <div>
         <a class="brand" href="/"><b>Marta Ferreira</b><small>Extensions</small></a>
-        <p class="muted" style="margin-top:18px;color:var(--on-dark-soft)">Em Portugal ou no Brasil, marque uma visita para nos conhecer, esclarecer dúvidas e tomar um café connosco.</p>
+        <p class="muted" style="margin-top:18px;color:var(--on-dark-soft)">Em Portugal, marque uma visita para nos conhecer, esclarecer dúvidas e tomar um café connosco.</p>
       </div>
       <div>
         <h2>Serviços</h2>
-        <ul><li>Aplicação</li><li>Remoção</li><li>Manutenção</li><li>Harmonização</li></ul>
+        <ul>${SERVICES.map((x) => `<li>${x}</li>`).join("")}</ul>
       </div>
       <div>
         <h2>O site</h2>
@@ -118,8 +167,7 @@ ${body}
           <li><a href="${WHATSAPP}" ${ext}>WhatsApp ${PHONE}</a></li>
           <li><a href="${INSTAGRAM}" ${ext}>Instagram</a></li>
           <li><a href="${FACEBOOK}" ${ext}>Facebook</a></li>
-          <li><a href="mailto:${EMAIL}">${EMAIL}</a></li>
-          <li><a href="${MAPS}" ${ext}>Setúbal (PT)</a> e São Paulo (BR)</li>
+          <li><a href="${MAPS}" ${ext}>Setúbal (PT)</a></li>
         </ul>
       </div>
     </div>
@@ -169,12 +217,12 @@ const REVIEWS = [
 const home = {
   path: "/",
   title: "Marta Ferreira Extensions | Extensões de cabelo em Setúbal",
-  description: "Extensões de micro-queratina com cabelo brasileiro. Atendimento individual e com hora marcada, em Setúbal, por Marta Ferreira, com mais de 16 anos de experiência.",
+  description: HOME_DESCRIPTION,
   body: `<section class="wrap hero">
   <div>
-    <span class="eyebrow">Extensões de micro-queratina</span>
+    <span class="eyebrow">Extensões de micro-queratina em Setúbal</span>
     <h1>Marta Ferreira</h1>
-    <p class="lead">Mais de 16 anos a tornar as clientes mais felizes, seguras e bonitas, em Londres, em São Paulo e agora em Portugal. Atendimento individual, com hora marcada.</p>
+    <p class="lead">Mais de 20 anos a tornar as clientes mais felizes, seguras e bonitas, em Londres, em São Paulo e agora em Setúbal. Atendimento individual, com hora marcada.</p>
     ${contactButtons()}
   </div>
   <figure>${img("hero", "Cabelo longo e encaracolado, visto de costas, com extensões aplicadas por Marta Ferreira", 'fetchpriority="high"')}</figure>
@@ -182,7 +230,7 @@ const home = {
 
 <section class="wrap">
   <div class="facts">
-    <div><b>16+</b><span>anos de experiência</span></div>
+    <div><b>20+</b><span>anos de experiência</span></div>
     <div><b>1500+</b><span>clientes atendidas</span></div>
     <div><b>3</b><span>países: Reino Unido, Brasil e Portugal, com especialização em Los Angeles</span></div>
   </div>
@@ -269,7 +317,7 @@ const home = {
       <p class="lead" style="margin-top:1.5rem">Cada serviço é feito em atendimento individual, depois de uma avaliação sem compromisso.</p>
       <a class="textlink" href="/faq/">Perguntas frequentes</a>
     </div>
-    <ul class="services"><li>Aplicação</li><li>Remoção</li><li>Manutenção</li><li>Harmonização</li></ul>
+    <ul class="services">${SERVICES.map((x) => `<li>${x}</li>`).join("")}</ul>
   </div>
 </section>
 
@@ -392,6 +440,11 @@ const FAQ = [
 ];
 const faq = {
   path: "/faq/",
+  schema: [{
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: FAQ.map(([q, a]) => ({ "@type": "Question", name: q, acceptedAnswer: { "@type": "Answer", text: a.join(" ") } })),
+  }],
   title: "Perguntas frequentes | Marta Ferreira Extensions",
   description: "Quanto tempo demora a aplicação, quanto duram e se as extensões danificam o cabelo: respostas às dúvidas mais comuns sobre extensões de cabelo.",
   body: `${pageHead("Perguntas frequentes", "Cabelo e extensões", "Quem nunca usou extensões fica muitas vezes com dúvidas. Veja se a sua está aqui, ou venha tomar um café connosco e falar sobre o assunto.")}
@@ -419,7 +472,7 @@ const marcacoes = {
       <div><h2>Avaliação sem compromisso</h2><p class="muted">Venha conhecer-nos e fazer uma avaliação sem compromisso.</p></div>
       <div><h2>Horário</h2><p class="muted">Todos os dias, das 09:00 às 18:00.</p></div>
       <div><h2>Morada</h2><p class="muted">${ADDRESS}</p><a class="textlink" href="${MAPS}" ${ext}>Abrir no Google Maps</a></div>
-      <div><h2>E-mail e telefone</h2><p class="muted"><a href="mailto:${EMAIL}">${EMAIL}</a><br><a href="tel:${PHONE_E164}">${PHONE}</a></p></div>
+      <div><h2>Telefone</h2><p class="muted"><a href="tel:${PHONE_E164}">${PHONE}</a></p></div>
     </div>
   </div>
 </section>`,
@@ -446,8 +499,60 @@ for (const page of [...pages, notFound]) {
 }
 writeFileSync(`${OUT}sitemap.xml`, `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${pages.map((p) => `  <url><loc>${SITE}${p.path}</loc></url>`).join("\n")}
+${pages.map((p) => `  <url><loc>${SITE}${p.path}</loc><lastmod>${new Date().toISOString().slice(0, 10)}</lastmod></url>`).join("\n")}
 </urlset>
 `);
 writeFileSync(`${OUT}favicon.svg`, `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" fill="#1f1b18"/><text x="32" y="45" font-family="Georgia,serif" font-size="38" text-anchor="middle" fill="#f4efe7">M</text></svg>`);
+const LLMS = `# Marta Ferreira Extensions
+
+> ${HOME_DESCRIPTION}
+
+- Morada: ${ADDRESS}, Portugal
+- Horário: todos os dias, das 09:00 às 18:00, com hora marcada
+- WhatsApp e telefone: ${PHONE}
+- Instagram: ${INSTAGRAM}
+- Serviços: ${SERVICES.join(", ")}
+- As marcações fazem-se por WhatsApp ou Instagram. A avaliação não tem compromisso.
+
+## Páginas
+
+- [Início](${SITE}/): apresentação, resultados, serviços e avaliações
+- [Antes e depois](${SITE}/galeria/): fotografias de clientes
+- [Imprensa](${SITE}/imprensa/): reportagens sobre Marta Ferreira
+- [Certificados](${SITE}/certificados/): formação internacional
+- [Perguntas frequentes](${SITE}/faq/): duração, cuidados e segurança das extensões
+- [Marcações](${SITE}/marcacoes/): contactos, morada e horário
+- [Clientes de referência](${SITE}/celebridades/): figuras públicas atendidas
+
+## Opcional
+
+- [Conteúdo completo em texto](${SITE}/llms-full.txt)
+`;
+const LLMS_FULL = `${LLMS.split("## Páginas")[0]}## Sobre Marta Ferreira
+
+Marta Ferreira é especialista em extensões de micro-queratina, com mais de 20 anos de experiência e mais de 1500 clientes atendidas. Trabalhou em Londres, em São Paulo e agora em Setúbal, e especializou-se em Los Angeles. Usa madeixas de cabelo brasileiro, preparadas com micro-cápsulas de queratina, e faz atendimento individual com hora marcada.
+
+## Certificados
+
+${CERTS.map(([, , c]) => `- ${c}`).join("\n")}
+
+## Na imprensa
+
+- Record TV: Marta Ferreira no programa Domingo Espetacular (${VIDEO})
+${PRESS.map(([o, d, t]) => `- ${o}${d ? `, ${d}` : ""}: ${t}`).join("\n")}
+
+## Clientes de referência
+
+${CLIENTS.map(([n, d]) => `- ${n}: ${d}`).join("\n")}
+
+## Perguntas frequentes
+
+${FAQ.map(([q, a]) => `### ${q}\n\n${a.join("\n\n")}`).join("\n\n")}
+
+## Avaliações de clientes
+
+${REVIEWS.map(([n, t]) => `- ${n}: "${t}"`).join("\n")}
+`;
+writeFileSync(`${OUT}llms.txt`, LLMS);
+writeFileSync(`${OUT}llms-full.txt`, LLMS_FULL);
 console.log(`${pages.length + 1} páginas geradas em dist/`);
