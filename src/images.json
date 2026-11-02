@@ -1,0 +1,126 @@
+{
+ "hero": [
+  768,
+  1004
+ ],
+ "naturalidade": [
+  576,
+  757
+ ],
+ "volume": [
+  455,
+  487
+ ],
+ "comprimento": [
+  992,
+  868
+ ],
+ "marta": [
+  686,
+  736
+ ],
+ "marta-retrato": [
+  380,
+  480
+ ],
+ "juncao-visivel": [
+  396,
+  400
+ ],
+ "juncao-invisivel": [
+  396,
+  400
+ ],
+ "ad1-antes": [
+  231,
+  347
+ ],
+ "ad1-depois": [
+  230,
+  347
+ ],
+ "ad2-antes": [
+  231,
+  347
+ ],
+ "ad2-depois": [
+  230,
+  347
+ ],
+ "ad3-antes": [
+  231,
+  347
+ ],
+ "ad3-depois": [
+  230,
+  347
+ ],
+ "ad4-antes": [
+  305,
+  350
+ ],
+ "ad4-depois": [
+  304,
+  350
+ ],
+ "ad5-antes": [
+  270,
+  479
+ ],
+ "ad5-depois": [
+  288,
+  479
+ ],
+ "ad6-antes": [
+  529,
+  541
+ ],
+ "ad6-depois": [
+  347,
+  541
+ ],
+ "ad7-antes": [
+  324,
+  581
+ ],
+ "ad7-depois": [
+  325,
+  581
+ ],
+ "cert-just": [
+  500,
+  388
+ ],
+ "cert-donna": [
+  500,
+  375
+ ],
+ "cert-lab": [
+  500,
+  375
+ ],
+ "imprensa-exame": [
+  843,
+  1422
+ ],
+ "imprensa-gazeta": [
+  771,
+  1491
+ ],
+ "imprensa-estado": [
+  988,
+  757
+ ],
+ "imprensa-ego": [
+  578,
+  626
+ ],
+ "imprensa-revista": [
+  1000,
+  2464
+ ],
+ "imprensa-infomoney": [
+  876,
+  1498
+ ]
+}
